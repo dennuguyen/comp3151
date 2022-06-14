@@ -1,0 +1,14 @@
+<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="201px" height="41px" viewBox="-0.5 -0.5 201 41" content="&lt;mxfile&gt;&lt;diagram id=&quot;jYfzDtW9f9AzYYgVByOj&quot; name=&quot;Page-1&quot;&gt;3VZRc4IwDP41vCtFN19l6l725MOeezRCb4VwpQru169AKjC2nec8vZMHaL6kTfIlATwWptVG8zx5QwHK8yei8tiL5/tswey9Bo4tMJ3MCIm1FIR1wFZ+gjMkdC8FFANDg6iMzIdghFkGkRlgXGssh2Y7VEOvOY9hBGwjrsbouxQmadFn/6nDX0HGifM8nS9aTcqdMWVSJFxg2YPYymOhRjTtKq1CUDV5jpd23/oX7SkwDZk5Z8OMwjBHlxsImyqJGWb2sUxMqqw0tcvCaPyAEBXqxpytm8tqxp4pmAL3OqLDfSoW1zGQFVW+dtvbRtFuAFMw+mgNNChu5GFYAU6FjE92Xa52Qen+nDoV68DVng69MhffUrqYnBtw4Z/BhVJ2vGoKykQa2Oa8ibu0Ez6khRd5O3M7WYE9f7mTSjmWiMUL2ugA2kD1Z4s47ZyGi14vQUBy2c2qg5LemDrsP0TObztPbNwywb3miT1SD52a4Q49FDwSkcy/GZFW7D6cja73+8FWXw==&lt;/diagram&gt;&lt;/mxfile&gt;">
+    <defs/>
+    <g>
+        <path d="M 40 20 L 73.63 20" fill="none" stroke="#ffffff" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 78.88 20 L 71.88 23.5 L 73.63 20 L 71.88 16.5 Z" fill="#ffffff" stroke="#ffffff" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 40 20 L 73.63 20" fill="none" stroke="#ffffff" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 78.88 20 L 71.88 23.5 L 73.63 20 L 71.88 16.5 Z" fill="#ffffff" stroke="#ffffff" stroke-miterlimit="10" pointer-events="all"/>
+        <ellipse cx="20" cy="20" rx="20" ry="20" fill="none" stroke="#ffffff" pointer-events="all"/>
+        <path d="M 120 20 L 153.63 20" fill="none" stroke="#ffffff" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 158.88 20 L 151.88 23.5 L 153.63 20 L 151.88 16.5 Z" fill="#ffffff" stroke="#ffffff" stroke-miterlimit="10" pointer-events="all"/>
+        <ellipse cx="100" cy="20" rx="20" ry="20" fill="none" stroke="#ffffff" pointer-events="all"/>
+        <ellipse cx="180" cy="20" rx="20" ry="20" fill="none" stroke="#ffffff" pointer-events="all"/>
+    </g>
+</svg>
