@@ -172,15 +172,17 @@ It is impossible to enumerate the space of all behaviours.
 
 To address Cantor's uncountability argument, we just make finite observations.
 
-The limit closure of $A$ i.e. $\bar{A}$ is the set of all behaviours that are indistinguishable from a behaviour in $A$ if finite observations are made.
+The limit closure of $A$ i.e. $\overline{A}$ is the set of all behaviours that are indistinguishable from a behaviour in $A$ if finite observations are made.
+
+The limit closure of $A$ i.e. $\overline{A}$ is the smallest closed set containing $A$, which is also the intersection of all closed sets containing $A$.
 
 $$
-A \subseteq \bar{A}
+A \subseteq \overline{A}
 $$
 
-The limit closure of a set $A \subseteq \Sigma^{\omega} = \bar{A}$ where:
+The limit closure of a set $A \subseteq \Sigma^{\omega} = \overline{A}$ where:
 $$
-\bar{A} = \left\{
+\overline{A} = \left\{
     \begin{aligned}
     \sigma &\in \Sigma^{\omega} | \forall n \in \mathbb{N} \\
     \exists \sigma' &\in A \\
@@ -191,24 +193,29 @@ $$
 
 > $\left. \sigma \right|_{k}$ denotes the prefix of the behaviour, $\sigma$, for the first $k$ states.
 
-> Set $A$ of behaviours is limit closed if $\bar{A} = A$.
+> Set $A$ of behaviours is limit closed if $\overline{A} = A$.
 
-> Set $A$ is dense if $\bar{A} = \Sigma^{\omega}$ i.e. the closure is the space of all behaviours.
+> Set $A$ is dense if $\overline{A} = \Sigma^{\omega}$ i.e. the closure is the space of all behaviours.
 
 ### Example 1
 
 $$
-\bar{\emptyset} = \emptyset
+\overline{\emptyset} = \emptyset
 $$
 
 ### Example 2
 
-Let $\Sigma = \{0, 1\}$, and let $A$ be the set of all behaviours that start with a finite number of 0's; followed by infinitely many 1's. What is $\bar{A}$?
+Let $\Sigma = \{0, 1\}$, and let $A$ be the set of all behaviours that start with a finite number of 0's; followed by infinitely many 1's. What is $\overline{A}$?
 
+If:
 $$
-\bar{A} = \left\{\begin{matrix} 0, 1 \\ 0, 0, 1 \\ \vdots \\ 0, \dots, 1 \end{matrix}\right\}
+A = \left(\overbrace{0, ...}^{0 \text{ to } k \text{ times}}, \overbrace{1, ...}^{\infin \text{ times}}\right)
 $$
 
+Then:
+$$
+\overline{A} = \left\{\overbrace{0, ...}^{0 \text{ to } \infin \text{ times}}, \overbrace{1, ...}^{\infin \text{ times}}\right\}
+$$
 
 ## Property
 
@@ -232,9 +239,9 @@ Safety properties are limit closed.
 ---
 Let $P$ be a safety property.
 
-Assume $\exists$ a behaviour $\sigma_{\omega} \in \bar{P}$ s.t. $\sigma_{\omega} \notin P$. For $\sigma_{\omega}$ to violate $P$, there must be a specific violating state in $\sigma_{\omega}$ i.e. $\exists k$ where $\sigma_{\omega}|_{k} \notin P$.
+Assume $\exists$ a behaviour $\sigma_{\omega} \in \overline{P}$ s.t. $\sigma_{\omega} \notin P$. For $\sigma_{\omega}$ to violate $P$, there must be a specific violating state in $\sigma_{\omega}$ i.e. $\exists k$ where $\sigma_{\omega}|_{k} \notin P$.
 
-Since $\sigma_{\omega} \in \bar{P}$, there must be a behaviour $\sigma \in P$ s.t. $\sigma_{\omega}|_{k} = \sigma|_{k}$.
+Since $\sigma_{\omega} \in \overline{P}$, there must be a behaviour $\sigma \in P$ s.t. $\sigma_{\omega}|_{k} = \sigma|_{k}$.
 
 Thus $\sigma$ both violates and satisfies the property $P$.
 
@@ -252,9 +259,9 @@ Liveness properties are dense.
 
 Let $P$ be a liveness property.
 
-If $\sigma \in P$, then $\sigma \in \bar{P} \because P \subseteq \bar{P}$.
+If $\sigma \in P$, then $\sigma \in \overline{P} \because P \subseteq \overline{P}$.
 
-If $\sigma \notin P$, then $\nexists k$ where $\sigma|_{k} \in P$. However, every finite prefix $\sigma|_{i} \subseteq \sigma$ could be extended differently with some $\rho_{i}$ s.t. $\sigma|_{i\rho_{i}} \in P$. Therefore, $\sigma \in \bar{P}$.
+If $\sigma \notin P$, then $\nexists k$ where $\sigma|_{k} \in P$. However, every finite prefix $\sigma|_{i} \subseteq \sigma$ could be extended differently with some $\rho_{i}$ s.t. $\sigma|_{i\rho_{i}} \in P$. Therefore, $\sigma \in \overline{P}$.
 
 ---
 
@@ -266,14 +273,14 @@ Every property is the intersection of a safety and a liveness property.
 
 $$
 \begin{aligned}
-P &= \overbrace{\bar{P}}^{\text{closed}} \cap \overbrace{\Sigma^{\omega} \setminus (\bar{P} \setminus P)}^{\text{dense}} \\
-&=  \bar{P} \cap \Sigma_{\omega} \setminus (\bar{P} \cap P^{c}) \\
-&=  \bar{P} \cap \Sigma_{\omega} \cap (\bar{P} \cap P^{c})^{c} \\
-&=  \bar{P} \cap \Sigma_{\omega} \cap (\bar{P}^{c} \cup P) \\
-&=  \bar{P} \cap (\bar{P}^{c} \cup P) \\
-&=  (\bar{P} \cap \bar{P}^{c}) \cup (\bar{P} \cap P) \\
-&= \bar{P} \cap P \\
-&= P \because P \subseteq \bar{P} \\
+P &= \overbrace{\overline{P}}^{\text{closed}} \cap \overbrace{\Sigma^{\omega} \setminus (\overline{P} \setminus P)}^{\text{dense}} \\
+&=  \overline{P} \cap \Sigma_{\omega} \setminus (\overline{P} \cap P^{c}) \\
+&=  \overline{P} \cap \Sigma_{\omega} \cap (\overline{P} \cap P^{c})^{c} \\
+&=  \overline{P} \cap \Sigma_{\omega} \cap (\overline{P}^{c} \cup P) \\
+&=  \overline{P} \cap (\overline{P}^{c} \cup P) \\
+&=  (\overline{P} \cap \overline{P}^{c}) \cup (\overline{P} \cap P) \\
+&= \overline{P} \cap P \\
+&= P \because P \subseteq \overline{P} \\
 \end{aligned}
 $$
 
@@ -318,10 +325,10 @@ Normal propositional operators:
 - If $\phi$ is an LTL formula, $\neg \phi$ is an LTL formula.
 
 Modal (temporal) operators:
-- If $\phi$ is an LTL formula, then $\circ \phi$ is an LTL formula.
+- If $\phi$ is an LTL formula, then $\bigcirc \phi$ is an LTL formula.
 - If $\phi, \psi$ are LTL formulae, then $\phi \; \mathcal{U} \; \psi$ is an LTL formula.
 
-> $\circ \phi$ : In the next state, $\phi$ holds.
+> $\bigcirc \phi$ : In the next state, $\phi$ holds.
 
 > $\phi \; \mathcal{U} \; \psi$ :  $\phi$ will hold for a finite amount of states; then, $\psi$ will hold after that.
 
@@ -331,7 +338,7 @@ LTL models are behaviours:
 - $\sigma \models \rho \iff \rho \in \sigma_{0}$
 - $\sigma \models \rho \land \psi \iff \sigma \models \phi \text{ and } \sigma \models \psi$
 - $\sigma \models \neg \phi \iff \sigma \not\models \phi$
-- $\sigma \models \circ \phi \iff \sigma|_{1} \models \phi$
+- $\sigma \models \bigcirc \phi \iff \sigma|_{1} \models \phi$
 - $\phi \models \phi \; \mathcal{U} \; \psi \iff \exists i \text{ s.t. } \sigma|_{i} \models \psi \text{ and } \forall j < i, \; \sigma|_{j} \models \phi$
 
 > $\sigma|_{n}$ denotes the suffix of $\sigma$ starting at $n + 1$ i.e. drops the first $n$ states.
@@ -341,3 +348,53 @@ LTL models are behaviours:
 > $\Diamond \phi = \top \; \mathcal{U} \; \phi $ : $\phi$ will eventually be true at some point.
 
 > $\Box \phi = \neg(\Diamond(\neg \phi))$ : $\phi$ will always be true from now on.
+
+LTL cannot express branching-time properties. <!-- Explain this? -->
+
+#### Proof 1
+
+Prove:
+$$
+\Box \phi = \neg (\Diamond \neg \phi)
+$$
+
+Consider:
+$$
+\sigma \models \phi \iff \sigma \models \psi
+$$
+
+Proof:
+$$
+\begin{aligned}
+\sigma \models \neg(\Diamond \neg \phi) &= \neg (\sigma \models \Diamond \neg \phi) \\
+&= \neg (\exists i. \; \sigma|_{i} \models \neg \phi) \\
+&= \neg (\exists i. \; \neg(\sigma|_{i} \models \phi)) \\
+&= \forall i. \; \neg \neg(\sigma|_{i} \models \phi) \\
+&= \forall i. \; \sigma|_{i} \models \phi \\
+&= \Box \phi \\
+\end{aligned}
+$$
+
+> Note that we use two layers of logic for our proof i.e. metalogic ($\forall, \exists, ...$) and object logic ($\Diamond, \Box, ...$).
+
+#### Proof 2
+
+Prove:
+$$
+\Box(\phi \land \psi) = \Box\phi \land \Box\psi
+$$
+
+Proof:
+$$
+\begin{aligned}
+\sigma \models \Box(\phi \land \psi) &= \forall i. \; \sigma|_{i} \models \phi \land \psi \\
+&= \forall i. \; ((\sigma|_{i} \models \phi) \land (\sigma|_{i} \models \psi)) \\
+&= (\forall i. \; \sigma|_{i} \models \phi) \land (\forall i. \; \sigma|_{i} \models \psi) \\
+&= \sigma \models \Box\phi \land \sigma \models \Box\psi \\
+&= \sigma \models \Box\phi \land \Box\psi \\
+\end{aligned}
+$$
+
+> $\Box\Diamond\phi$ : infinitely often, always eventually.
+
+> $\Diamond\Box\phi$ : almost globally, always true from some point onwards, eventually reach a state where its always true.
