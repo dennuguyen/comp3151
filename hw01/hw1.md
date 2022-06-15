@@ -181,12 +181,8 @@ $$
 
 5. Whenever the dragon was slain, the princess did not live happily.
 $$
-\sigma \models \Box\Diamond(\neg D \land \neg P)
+\sigma \models (D \land P) \lor (D \land \neg P) \lor (\neg D \land \neg P)
 $$
-
-> Always eventually (infinitely often), the dragon is slain and the princess is not happy.
-
-<!-- TODO -->
 
 ### Proof
 
