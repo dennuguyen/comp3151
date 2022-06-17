@@ -339,9 +339,9 @@ LTL models are behaviours:
 - $\sigma \models \rho \land \psi \iff \sigma \models \phi \text{ and } \sigma \models \psi$
 - $\sigma \models \neg \phi \iff \sigma \not\models \phi$
 - $\sigma \models \bigcirc \phi \iff \sigma|_{1} \models \phi$
-- $\phi \models \phi \; \mathcal{U} \; \psi \iff \exists i \text{ s.t. } \sigma|_{i} \models \psi \text{ and } \forall j < i, \; \sigma|_{j} \models \phi$
+- $\sigma \models \phi \; \mathcal{U} \; \psi \iff \exists i \text{ s.t. } \sigma|_{i} \models \psi \text{ and } \forall j < i, \; \sigma|_{j} \models \phi$
 
-> $\sigma|_{n}$ denotes the suffix of $\sigma$ starting at $n + 1$ i.e. drops the first $n$ states.
+> $\sigma|_{n}$ denotes the suffix of $\sigma$ starting at $n + 1$ i.e. drops the first $n$ states. It does not note the prefix, we can tell the difference based on context that this is modelling.
 
 > Propositional logic models were sets of propositional atoms.
 
@@ -398,3 +398,129 @@ $$
 > $\Box\Diamond\phi$ : infinitely often, always eventually.
 
 > $\Diamond\Box\phi$ : almost globally, always true from some point onwards, eventually reach a state where its always true.
+
+## Why Concurrency?
+
+How many scenarios are there for a program with $n$ finite processes consisting of $m$ atomic actions each?
+
+$$
+\frac{(nm)!}{m!^{n}}
+$$
+
+For 6 processes consisting of 6 sequential atomic actions each, there are 2 670 177 736 637 149 247 308 800 scenarios...
+
+It is infeasible to test all possible scenarios so we apply *formal methods*.
+
+## Model Checking
+
+Given a program, $P$, and property, $\phi$, exhaustingly searches the state-space for a counter-example to $\phi$.
+
+Pros:
+- Easy to use push-button technology.
+- Instructive counter-examples (error traces) help debugging.
+
+Cons:
+- State explosion problem (infeasible to model check in reasonable time).
+
+> Not learning how to write a model checker in this course. Just how to use one i.e. Promela.
+
+## Theorem Proving
+
+Construct a (formal) proof for $P$.
+
+Pros:
+- No (theoretical) limits on state-spaces.
+- Can learn why theorem holds.
+
+Cons:
+- Requires expert users to hand-crank thorough proofs.
+
+## Promela
+
+### Volatile Variables
+
+Sometimes we cannot guarantee that a statement is executed atomically (i.e. in one step). This is statement is called the *limit critical reference restriction*.
+
+We require each statement to only access at most one shared variable at a time to overcome volatile variables.
+
+In the following example, each statement, access a single variable:
+```promela
+do
+:: i < 10 ->
+    temp = c;
+    c = temp + 1;
+od
+```
+
+### Ensuring Atomicity
+
+Grouping statements with `atomic` prevents them from being interrupted:
+```promela
+atomic {
+    run P();
+    run P();
+}
+```
+If a statement in the atomic block is blocked, then atomicity is temporarily suspended and another process may run
+
+Grouping statements with `d_step` is more efficient than `atomic` because it groups them into a single transition:
+```promela
+
+```
+<!-- TODO -->
+If a statement in the d_step block is blocked, then runtime error is raied. `if` and `do` is not allowed.
+
+> `d_step` stands for deterministic step.
+
+## Atomicity
+
+Critical section problems tend to look like this (in the real world):
+
+```
+forever do
+    non-critical section
+    pre-protocol
+    critical section
+    post-protocol
+```
+
+Non-critical section models the possibility that a process may do something else (maybe taking a finite or infinite amount of time).
+
+We want to find pre- and post-protocols such that certain **atomicity properties** are satisfied:
+- **Mutual Exclusion**: No two properties are in the critical section at the same time.
+- **Eventual Entry**: Process will eventually be able to execute its critical section (once entering pre-protocol).
+- **Absence of Deadlock**: System should never reach a state where there are no actions.
+- **Absence of Unnecessary Delay**: If only one process is attempting to enter its critical section, it is not prevented from doing so.
+
+### Dekker's Algorithm
+
+A solution to the mutual exclusion problem and satisfying all the above atomicity properties:
+
+```
+forever do
+    non-critical section
+    wantp = True;            // Flag intent that this process wants to do work.
+    while wantq do           // Let other process do work.
+
+        // We have the following block in case both processes are in the while loop.
+        // This avoids livelock.
+        if turn = 2 then     // If it's our turn.
+            wantp = False;   // State that we don't want it.
+            await turn = 1;  // Wait until other process has exited its critical section.
+            wantp = True;    // State that we want it now.
+    critical section
+    turn = 2;                // Their turn now.
+    wantp = False;           // We don't want to go into critical section anymore.
+```
+
+## Fairness
+
+Weak fairness for an action, $\pi$:
+$$
+\Box(\Box\text{enabled}(\pi) \implies \Diamond\text{taken}(\pi))
+$$
+
+Strong fairness for an action, $\pi$:
+$$
+\Box(\Box\Diamond\text{enabled}(\pi) \implies \Diamond\text{taken}(\pi))
+$$
