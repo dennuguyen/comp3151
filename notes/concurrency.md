@@ -504,9 +504,9 @@ forever do
 
         // We have the following block in case both processes are in the while loop.
         // This avoids livelock.
-        if turn = 2 then     // If it's our turn.
+        if turn = 2 then     // If it's their turn.
             wantp = False;   // State that we don't want it.
-            await turn = 1;  // Wait until other process has exited its critical section.
+            await turn = 1;  // Wait until it's our turn.
             wantp = True;    // State that we want it now.
     critical section
     turn = 2;                // Their turn now.
