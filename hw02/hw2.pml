@@ -85,7 +85,7 @@ By default, safety properties are checked.
 
 No failed assertions raised.
  */
-ltl mutex { [] !(A@csA && B@csB && C@csC)}
+ltl mutex { [] !(A@csA && B@csB && C@csC) }
 
 /**
 spin -search -a -ltl waitA hw2.pml
@@ -94,7 +94,7 @@ spin -search -a -ltl waitA hw2.pml
 
 No failed assertions raised.
  */
-ltl waitA { [] (A@waitA implies (<> A@csA))  }
+ltl waitA { [] (A@waitA implies (<> A@csA)) }
 
 /**
 spin -search -a -ltl waitB hw2.pml
@@ -103,7 +103,7 @@ spin -search -a -ltl waitB hw2.pml
 
 No failed assertions raised.
  */
-ltl waitB { [] (B@waitB implies (<> B@csB))  }
+ltl waitB { [] (B@waitB implies (<> B@csB)) }
 
 /**
 spin -search -a -ltl waitC hw2.pml
@@ -112,4 +112,4 @@ spin -search -a -ltl waitC hw2.pml
 
 No failed assertions raised.
  */
-ltl waitC { [] (C@waitC implies (<> C@csC))  }
+ltl waitC { [] (C@waitC implies (<> C@csC)) }
