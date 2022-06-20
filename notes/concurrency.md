@@ -12,6 +12,7 @@ Concurrency is an abstraction allowing programs to be structured as multiple pro
 - $\bot$ : falsity
 - $\llbracket P \rrbracket$ : semantics of $P$ (a program)
 - $\models$ : models, entails
+- $\circ$ : function composition
 
 ## 3 R's
 
@@ -487,10 +488,10 @@ forever do
 Non-critical section models the possibility that a process may do something else (maybe taking a finite or infinite amount of time).
 
 We want to find pre- and post-protocols such that certain **atomicity properties** are satisfied:
-- **Mutual Exclusion**: No two properties are in the critical section at the same time.
-- **Eventual Entry**: Process will eventually be able to execute its critical section (once entering pre-protocol).
-- **Absence of Deadlock**: System should never reach a state where there are no actions.
-- **Absence of Unnecessary Delay**: If only one process is attempting to enter its critical section, it is not prevented from doing so.
+- **Mutual Exclusion** (safety): No two properties are in the critical section at the same time.
+- **Eventual Entry** (liveness): Process will eventually be able to execute its critical section (once entering pre-protocol).
+- **Absence of Deadlock** (safety): System should never reach a state where there are no actions.
+- **Absence of Unnecessary Delay** (liveness): If only one process is attempting to enter its critical section, it succeeds.
 
 ### Dekker's Algorithm
 
@@ -524,3 +525,216 @@ Strong fairness for an action, $\pi$:
 $$
 \Box(\Box\Diamond\text{enabled}(\pi) \implies \Diamond\text{taken}(\pi))
 $$
+
+## Transition Diagrams
+
+A transition diagram is a tuple:
+$$
+(L, T, s, t)$$
+
+Where:
+- $L$ is a set of locations (program counter values).
+- $T$ is a set of transitions.
+- $s \in L$ is an entry location.
+- $t \in L$ is an exit location.
+
+A transition is expressed as:
+$$
+l_{i} \xrightarrow{g; f} l_{j}
+$$
+
+Where:
+- $l_{i}$ and $l_{j}$ are locations.
+- $g$ is a guard, $\Sigma \rightarrow \mathbb{B}$.
+- $f$ is a state update, $\Sigma \rightarrow \Sigma$.
+
+> For $g; f$, if $g = \top$, then write $f$.
+
+> For $g; f$, if $f$ is identity, then write $g$.
+
+### Example 1
+
+```
+i = 0;
+s = 0;
+while i != N do
+    s = s + 1;
+    i = i + 1;
+od
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> l0
+    l0 --> l1: True. i = 0
+    l1 --> l2: s = 0
+    l2 --> l3: i != N. s = s + i
+    l3 --> l2: i = i + 1
+    l2 --> [*]: i = N
+```
+
+## Floyd Verification
+
+Given a transition diagram, $(L, T, s, t)$:
+1. Associate each location $l \in L$ with an assertion, $\mathcal{Q}(l): \Sigma \rightarrow \mathbb{B}$.
+2. Prove that this assertion network is inductive i.e. for each transition in $T$, $l_{i} \xrightarrow{g; f} l_{j}$, show that:
+$$
+\mathcal{Q}(l_{i}) \land g \Rightarrow \mathcal{Q}(l_{j}) \circ f
+$$
+
+> If annotation at $l_{i}$ is true and guard is true, then after updating the state with $f$, the annotation at $l_{j}$ must be true.
+
+3. Show that $\phi \Rightarrow \mathcal{Q}(s)$ and $\mathcal{Q}(t) \Rightarrow \psi$.
+
+> Annotations are also called an assertion network.
+
+> Floyd's method is a theorem proving technique.
+
+### Example 1
+
+```mermaid
+stateDiagram-v2
+    [*] --> l0
+    l0 --> l1: True. i = 0
+    l1 --> l2: s = 0
+    l2 --> l3: i != N. s = s + i
+    l3 --> l2: i = i + 1
+    l2 --> [*]: i = N
+```
+
+Let $P$ be the whole transition diagram.
+
+Prove:
+$$
+\{\top\}P\{s = \frac{N(N - 1)}{2}\}
+$$
+
+Proof is done by finding an "annotation" for every location - annotation should state something that's always true at that location:
+- Pre-condition implies the start location's annotation.
+- Exit location's annotation implies the post-condition.
+- If current location's annotation is true, then if we take a transition, the next location's annotation becomes true.
+
+Proof:
+$$
+\begin{aligned}
+l_{0}&: \top \\
+l_{1}&: i = 0 \\
+l_{2}&: s = \frac{i(i - 1)}{2} \\
+l_{3}&: s = \frac{(i + 1)i}{2} \\
+l_{4}&: s = \frac{N(N - 1)}{2} \\
+\end{aligned}
+$$
+
+Considering $l_{1} \rightarrow l_{2}$, we must prove:
+$$
+\begin{aligned}
+i &= 0 \rightarrow (s = \frac{i(i - 1)}{2}) \\
+\text{Let } s = 0 \text{: } i &= 0 \rightarrow (0 = \frac{i(i - 1)}{2}) \\
+\end{aligned}
+$$
+
+Considering $l_{2} \rightarrow l_{3}$, we must prove:
+$$
+\begin{aligned}
+s = \frac{i(i - 1)}{2} \land i \neq N \rightarrow s + i = \frac{(i + 1)i}{2} \\
+\end{aligned}
+$$
+
+## Concurrent Transition Diagrams
+
+Given two processes $P$ and $Q$ with transition diagrams $(L_{P}, T_{P}, s_{P}, t_{P})$ and $(L_{Q}, T_{Q}, s_{Q}, t_{Q})$, the parallel composition of $P$ and $Q$, $P \; \| \; Q$, is defined as $(L, T, s, t)$ where:
+- $L = L_{P} \times L_{Q}$
+- $s = s_{P}s_{Q}$
+- $t = t_{P}t_{Q}$
+- $p_{i}q_{i} \xrightarrow{g; f} p_{j}q_{i} \in T \text{ if } p_{i} \xrightarrow{g; f} p_{j} \in T_{P}$
+- $p_{i}q_{i} \xrightarrow{g; f} p_{i}q_{j} \in T \text{ if } q_{i} \xrightarrow{g; f} q_{j} \in T_{Q}$
+
+![concurrent-transition-diagram](concurrent-transition-diagram.png)
+
+> Every horizontal transition belongs to the horizontal process. Every vertical transition belongs to the vertical process.
+
+Floyd's verification can be applied on basic concurrent programs after taking the parallel composition. However, not feasible because of state-space explosion.
+
+## Owicki-Gries Method
+
+The Owicki-Gries method generalises verifying concurrent programs to $n$ processes, by requiring more interference freedom obligations.
+
+![owicki-gries-transition-diagram](owicki-gries-transition-diagram.png)
+
+To show $\{\phi\} P \; \| \; Q \{\psi\}$:
+1. Define local assertion networks $\mathcal{P}$ and $\mathcal{Q}$ for $P$ and $Q$.
+2. Show $\mathcal{P}$ and $\mathcal{Q}$ are inductive.
+3. For each location $p \in L_{P}$, show that $\mathcal{P}(p)$ is not falsified by any transition of $Q$ i.e.:
+$$
+\forall q \xrightarrow{g; f} q' \in T_{Q}: \mathcal{P}(p) \land \mathcal{Q}(q) \land g \Rightarrow \mathcal{P}(p) \circ f
+$$
+4. Do the same for $Q$.
+5. Show that $\phi \Rightarrow \mathcal{P}(s_{P}) \land \mathcal{Q}(s_{Q})$ and $\mathcal{P}(t_{P}) \land \mathcal{Q}(t_{Q}) \Rightarrow \psi$.
+
+> Owicki-Gries method is a theorem proving technique.
+
+### Proving Mutual Exclusion
+
+Don't have a post-condition.
+
+Make the assertions at the critical sections contradictory so they cannot be true simultaenously.
+
+Ensure that each transition does not violate limited critical reference rule.
+
+#### Example 1
+
+Consider the Manna-Pnueli algorithm:
+
+Initialise:
+```
+wantp = 0
+wantq = 0
+```
+
+Process $P$:
+```
+    forever do
+p1      non-critical section
+p2      if wantq == -1  // atomic with if wantp == -1
+            wantp = -1
+        else
+            wantp = 1
+p3      await wantq != wantp
+p4      critical section
+p5      wantp = 0
+```
+
+Process $Q$:
+```
+    forever do
+q1      non-critical section
+q2      if wantp == -1  // atomic with if wantp == -1
+            wantq = 1
+        else
+            wantq = -1
+q3      await wantq != -wantp
+q4      critical section
+q5      wantq = 0
+```
+
+> $p_{2}$ and $q_{2}$ are one atomic step.
+
+Define the annotations for process $P$:
+- $p_{1}$: $\text{wantp} = 0$
+- $p_{2}$: $\text{wantp} = 0$
+- $p_{3}$: $\text{wantp} \neq 0$
+- $p_{4}$: $\text{wantp} \neq 0 \land \text{wantq} \neq \text{wantp}$
+- $p_{5}$: $\top$
+
+Define the annotations for process $Q$:
+- $q_{1}$: $\text{wantq} = 0$
+- $q_{2}$: $\text{wantq} = 0$
+- $q_{3}$: $\text{wantq} \neq 0$
+- $q_{4}$: $\text{wantq} \neq 0 \land \text{wantp} \neq -\text{wantq}$
+- $q_{5}$: $\top$
+
+Check process $P$'s annotations are inductive:
+
+Check process $Q$'s annotations are inductive:
+
+Check for interference:
