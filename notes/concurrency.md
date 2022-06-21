@@ -555,12 +555,12 @@ Where:
 ### Example 1
 
 ```
-i = 0;
-s = 0;
-while i != N do
-    s = s + 1;
-    i = i + 1;
-od
+l0  i = 0;
+l1  s = 0;
+l2  while i != N do
+        s = s + 1;
+l3      i = i + 1;
+    od
 ```
 
 ```mermaid
@@ -572,6 +572,7 @@ stateDiagram-v2
     l3 --> l2: i = i + 1
     l2 --> [*]: i = N
 ```
+<!-- TODO UPDATE DIAGRAM -->
 
 ## Floyd Verification
 
@@ -601,6 +602,7 @@ stateDiagram-v2
     l3 --> l2: i = i + 1
     l2 --> [*]: i = N
 ```
+<!-- TODO UPDATE DIAGRAM -->
 
 Let $P$ be the whole transition diagram.
 
@@ -628,8 +630,8 @@ $$
 Considering $l_{1} \rightarrow l_{2}$, we must prove:
 $$
 \begin{aligned}
-i &= 0 \rightarrow (s = \frac{i(i - 1)}{2}) \\
-\text{Let } s = 0 \text{: } i &= 0 \rightarrow (0 = \frac{i(i - 1)}{2}) \\
+i &= 0 \rightarrow s = \frac{i(i - 1)}{2} \\
+\text{Let } s = 0 \text{: } i &= 0 \rightarrow 0 = \frac{i(i - 1)}{2} \\
 \end{aligned}
 $$
 
