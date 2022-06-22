@@ -13,8 +13,13 @@ proctype P() {
         do
         :: b[1] == true ->
             b[0] = true;
-            waitP: b[0] = true;
+            do
+            :: b[0] != true ->
+                waitP: skip
+            :: else -> break
+            od
             b[0] = true;
+        :: else -> break
         od
         csP: critical_section();
         b[0] = false;
@@ -29,8 +34,13 @@ proctype Q() {
         do
         :: b[0] == true ->
             b[1] = false;
-            waitQ: b[0] = false;
+            do
+            :: b[0] != false ->
+                waitQ: skip
+            :: else -> break
+            od
             b[1] = true;
+        :: else -> break
         od
         csQ: critical_section();
         b[1] = false;
