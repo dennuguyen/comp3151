@@ -1,0 +1,109 @@
+Session: 22T2
+Assignment: hw1  Submission ID: 5206032
+
+
+Your submission has been marked. + /usr/bin/less -m /import/ravel/4/z5206032/cs3151.hw1.mrk
+
+!!section banner
+#######  #####    ###    #####    ###    #####   #####
+#       #     #  #   #  #     #  #   #  #     # #     #
+#             # # #   # #       # #   #       #       #
+ #####   #####  #  #  # ######  #  #  #  #####   #####
+      # #       #   # # #     # #   # #       # #
+#     # #        #   #  #     #  #   #  #     # #
+ #####  #######   ###    #####    ###    #####  #######
+
+5206032	Nguyen, Dan                            	3785/5 COMPA1 MTRNAH
+
+Submissions:-
+
+S 0	Wed Jun 15 17:32:59 2022	5206032 all hw1 5:7
+S 0+	Wed Jun 15 17:32:59 2022	5206032 all hw1 0:7
+
+Fri Jul 08 16:40:41 2022		## wagner.orchestra.cse.unsw.EDU.AU ##
+!!section listing
+mv: 'hw1.pdf' and 'hw1.pdf' are the same file
+!!section tests
+!!section assess
+
+=========================
+Comments for question 1
+-------------------------
+
+
+=========================
+!!specialmark  (Question 1)                            	1/1
+
+=========================
+Comments for question 2
+-------------------------
+
+
+The level of depth your argument is in is good, but we can tell whether the NSA paid or not.
+C_1 does not lie when they announce whether they got diff or equal, so there wll only be
+one instance where we negate t_1. (1/2)
+=========================
+!!specialmark  (Question 2)                            	1/2
+
+=========================
+Comments for question 3
+-------------------------
+
+
+Limit Closures:
+
+1) This doesn't quite work; neither of these are sets of behaviours. Recall that a
+behaviour is an infinite sequence of states. (0.5/1)
+
+Alpern and Shneider:
+
+1) This doesn't quite work, P_S should be {contains at most one b} and P_L should be
+{contains at least one b}. (0.5/2)
+
+2) Very nice, this works (1/1)
+
+3) Good stuff (1/1)
+=========================
+!!specialmark  (Question 3)                            	3/5
+
+=========================
+Comments for question 4
+-------------------------
+
+
+Examples:
+
+Note: you don't need the "\sigma models" at the start of all of these equations. That says
+that \sigma models these formulas, and we're just after the formulas themselves :)
+
+1) Good, this works (0.4/0.4)
+
+2) Very nice (0.4/0.4)
+
+3) That should just be eventually, not always eventually. Always eventually means the
+dragon will be slain infinitely many times (0.2/0.4)
+
+4) This doesn't account for the case where the dragon is not slain (0.2/0.4)
+
+5) This works, but you need an always at the start to make this apply beyond the first
+state (0.3/0.4)
+
+Proof:
+
+1) You have to be a bit more careful with notation, this doesn't work as stated (0.6/1)
+
+2) Again, the notation is a bit off; O applies to ltl formulas, not semantic statements
+about ltl formulas. (0.6/1)
+
+3) Great (1/1)
+=========================
+!!specialmark  (Question 4)                            	3.7/5
+
+!!marktab	**  MARKER'S  ASSESSMENT  **
+
+
+!!latepen	** LATE PENALTY (7 HOURS LATE)	 -0.65
+
+!!finalmark	**  FINAL  ASSIGNMENT  MARK:	8.05/13
+
+5206032	Nguyen, Dan                            	3785/5 COMPA1 MTRNAH

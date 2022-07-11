@@ -1,0 +1,74 @@
+Session: 22T2
+Assignment: hw2  Submission ID: 5206032
+
+
+Your submission has been marked. + /usr/bin/less -m /import/ravel/4/z5206032/cs3151.hw2.mrk
+
+!!section banner
+#######  #####    ###    #####    ###    #####   #####
+#       #     #  #   #  #     #  #   #  #     # #     #
+#             # # #   # #       # #   #       #       #
+ #####   #####  #  #  # ######  #  #  #  #####   #####
+      # #       #   # # #     # #   # #       # #
+#     # #        #   #  #     #  #   #  #     # #
+ #####  #######   ###    #####    ###    #####  #######
+
+5206032	Nguyen, Dan                            	3785/5 COMPA1 MTRNAH
+
+Submissions:-
+
+S 0	Sat Jun 18 04:39:57 2022	5206032 all hw2 0:13
+S 0+	Sat Jun 18 04:39:57 2022	5206032 all hw2 0:18
+
+Fri Jul 08 16:41:41 2022		## wagner.orchestra.cse.unsw.EDU.AU ##
+!!section listing
+!!section tests
+!!section assess
+
+=========================
+Comments for question 1
+-------------------------
+
+
+This explanation is almost correct, it's just the wrong way around. x being 1 does
+not guarntee that x==1 U x==3 is true, in fact it only satisfies this property if
+x becomes 3 immediately after x is 1. However, if x is 3, then x==1 U x==3 is satisfied
+since x==1 never needs to be true for this property to hold. 
+
+Your proposed solution for altering this model is to remove the eventually, which would
+fail but for kind of a different reason that expected; x is 0 intially. What we want to
+is a property that says "immediately after x is 1, x becomes 3", which is slightly weaker
+than whatr your statement says. (2/4)
+=========================
+!!specialmark  (Question 1)                            	2/4
+
+=========================
+Comments for question 2
+-------------------------
+
+
+After checking with spin, it seems like your model doesn't satisfy the
+eventual entry claims (this was to be expected, but it differs from your
+report), though it does indeed satisfy your mutex formula.
+
+Your implementation also does not satisfy limited critical reference, notice
+that checking wantB || wantC is not atomic. To satisfy limited critical reference
+you could have made a temporary variable, read wantB into it and then done an
+or with wantC.
+
+Also, your mutex formula is slightly weaker than what we want; 
+it says that the 3 processes are never in their critical
+sections and the same time, wheras we want something that says no two properties are
+ever in their critical sections at the same time. Otherwise, good stuff! (5/8)
+
+=========================
+!!specialmark  (Question 2)                            	5/8
+
+!!marktab	**  MARKER'S  ASSESSMENT  **
+
+
+!!latepen	** LATE PENALTY (18 HOURS LATE)	 -0.6
+
+!!finalmark	**  FINAL  ASSIGNMENT  MARK:	6.4/12
+
+5206032	Nguyen, Dan                            	3785/5 COMPA1 MTRNAH
