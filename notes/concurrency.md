@@ -487,13 +487,25 @@ forever do
 
 Non-critical section models the possibility that a process may do something else (maybe taking a finite or infinite amount of time).
 
-We want to find pre- and post-protocols such that certain **atomicity properties** are satisfied:
-- **Mutual Exclusion** (safety): No two properties are in the critical section at the same time.
-- **Eventual Entry** (liveness): Process will eventually be able to execute its critical section (once entering pre-protocol).
-- **Absence of Deadlock** (safety): System should never reach a state where there are no actions.
-- **Absence of Unnecessary Delay** (liveness): If only one process is attempting to enter its critical section, it succeeds.
+## Critical Section Desiderata
 
-### Dekker's Algorithm
+Properties that we want to always be true when solving critical section problems.
+
+We want to find pre- and post-protocols such that certain **atomicity properties** are satisfied.
+
+### Safety Desiderata
+
+- **Mutual Exclusion**: No two properties are in the critical section at the same time.
+- **Absence of Deadlock**: System should never reach a state where there are no actions.
+
+### Liveness Desiderata
+
+- **Eventual Entry**: Once a process enters its pre-protocol, it will eventually execute its critical section.
+- **Absence of Unnecessary Delay**: If only one process is attempting to enter its critical section, it succeeds.
+- **Bounded Waiting**: Once a process enters its pre-protocol, it can be *bypassed* by other processes at most $f(n)$ times for some $f$ where $n$ is number of processes.
+- **Linear Waiting**: No process can enter its critical section twice while another process is in its pre-protocol.
+
+## Dekker's Algorithm
 
 A solution to the mutual exclusion problem and satisfying all the above atomicity properties:
 
@@ -521,10 +533,14 @@ $$
 \Box(\Box\text{enabled}(\pi) \implies \Diamond\text{taken}(\pi))
 $$
 
+> If an action is always enabled then it will eventually happen.
+
 Strong fairness for an action, $\pi$:
 $$
 \Box(\Box\Diamond\text{enabled}(\pi) \implies \Diamond\text{taken}(\pi))
 $$
+
+> No action can be enabled infinitely often without being executed.
 
 ## Transition Diagrams
 
@@ -771,3 +787,700 @@ $$
 Prove the algorithm is mutually exclusive by showing $P$ at location $p_{4}$ and $Q$ at location $q_{4}$ cannot both be true.
 
 <!-- TODO: Proof -->
+
+## Machine Instructions
+
+If `XC` was a machine instruction that could atomically swap two values, then a critical section solution can be:
+
+```
+bit common = 1
+```
+
+```
+    bit tp = 0
+    forever do
+p1      non-critical section
+        repeat
+p2          XC(tp, common)
+p3      until tp = 1
+p4      critical section
+p5      XC(tp, common)
+```
+
+```
+    bit tq = 0
+    forever do
+q1      non-critical section
+        repeat
+q2          XC(tq, common)
+q3      until tq = 1
+q4      critical section
+q5      XC(tq, common)
+```
+
+## Invariants
+
+An invariant is an assertion network where every assertion is the same.
+
+Do not need to prove interference freedom.
+
+### Example 1 - Exchange-Based Critical Section Solution
+
+Consider the `XC` example:
+
+$$
+\mathcal{I} \equiv (\text{common} \oplus \text{tp} \oplus \text{tq}) = 1 \land (P@p_{4} \implies \text{tp} = 1) \land (Q@q_{4} \implies \text{tq} = 1) \land \neg (\text{common} = \text{tp} \land \text{common} = \text{tq})
+$$
+
+Note that $\mathcal{I}$ is false at $p_{4}q_{4}$.
+
+## Peterson's Algorithm for 2 Processes
+
+```
+boolean wantp = false
+boolean wantq = false
+integer last = 1
+```
+
+Process $P$:
+```
+    forever do
+p1      non-critical section
+p2      wantp = true
+p3      last = 1
+p4      await wantq = false or last != 1
+p5      critical section
+p6      wantp = false
+```
+
+Process $Q$:
+```
+    forever do
+q1      non-critical section
+q2      wantq = true
+q3      last = 2
+q4      await wantp = false or last != 2
+q5      critical section
+q6      wantq = false
+```
+
+## Peterson's Algorithm for $n$ Processes
+
+```
+integer array in[1..n] = [0, ..., 0]
+integer array last[1..n] = [0, ..., 0]
+```
+
+Process $P_{i}$:
+```
+    forever do
+p1      non-critical section
+        for all j in {1..n-1}
+p2      in[i] = j
+p3      last[j] = i
+        for all processes k != i
+p4          await in[k] < j or last[j] != i
+p5      critical section
+p6      in[i] = 0
+```
+
+### Problems
+
+- Has $O(n^{2})$ pre-protocol.
+
+Satisfies eventual entry but does not satisfy bounded waiting nor linear waiting.
+
+## Simplified Bakery Algorithm for 2 Processes
+
+Simplified because of grouping of statements that cannot be atomic.
+
+```
+integer np = 0
+integer nq = 0
+```
+
+Process $P$:
+```
+    forever do
+p1      non-critical section
+p2      np = nq + 1
+p3      await nq == 0 or np <= nq
+p4      critical section
+p5      np = 0
+```
+
+Process $Q$:
+```
+    forever do
+q1      non-critical section
+q2      nq = np + 1
+q3      await np == 0 or nq < np
+q4      critical section
+q5      nq = 0
+```
+
+Invariants:
+$$
+\begin{align}
+\text{np} = 0 \iff P@p1 \lor P@p2 \\
+\text{nq} = 0 \iff Q@q1 \lor Q@q2 \\
+P@p4 \implies \text{nq} = 0 \lor \text{np} \leq \text{nq} \\
+Q@q4 \implies \text{np} = 0 \lor \text{nq} < \text{np} \\
+\end{align}
+$$
+
+Proving all the above invariants shows:
+$$
+\neg(P@p4 \land Q@q4)
+$$
+
+### Problems
+
+- `np` and `nq` can grow unboundedly large (practically unlikely though).
+
+### Proving Deadlock Freedom
+
+Consider the disjunction of the conditions on the `await` statement i.e. $p_{3}$ and $q_{3}$:
+$$
+\text{nq} = 0 \lor \text{np} \leq \text{nq} \lor \text{np} = 0 \lor \text{nq} < \text{np}
+$$
+
+The disjunction is equivalent to $\top$, therefore it is not possible for both proceses to be blocked there.
+
+> Analogy is a process grabs a ticket number that is incrementing.
+
+## Simplified Bakery Algorithm for $n$ Processes
+
+```
+integer array[1..n] number = [0, ..., 0]
+```
+
+Process $P_{i}$:
+```
+    forever do
+p1      non-critical section
+p2      number[i] = max(number) + 1
+p3      for all other processes j
+p4          await (number[j] = 0) or (number[i] << number[j])
+p5      critical section
+p6      number[i] = 0
+```
+
+Where:
+$$
+a[i] \ll a[j] \iff (a[i] < a[j]) \lor (a[i] = a[j] \land i < j)
+$$
+
+## Lamport's Bakery Algorithm
+
+```
+boolean array[1..n] choosing = [false, ..., false]
+integer array[1..n] number = [0, ..., 0]
+```
+
+Process $P_{i}$:
+```
+    forever do
+p1      non-critical section
+p2      choosing[i] = true
+p3      number[i] = 1 + max(number)
+p4      choosing[i] = false
+p5      for all other processes j
+p6          await choosing[j] == false
+p7          await (number[j] == 0) or (number[i] << number[j])
+p8      critical section
+p9      number[i] = 0
+```
+
+We ensure that processes do not pick the same ticket number.
+
+Algorithm does not assume that read and write operations are atomic (when choosing a ticket). If read and write occurred simultaenously then write operation is performed correctly and read may return an arbitrary value.
+
+## Fast Lamport's Bakery Algorithm for 2 Processes
+
+Remove contention when trying to access critical section.
+
+```
+integer gate1 = 0
+integer gate2 = 0
+```
+
+Process $P$:
+```
+    forever do
+        non-critical section
+p1      gate1 = p
+p2      if gate2 != 0 goto p1
+p3      gate2 = p
+p4      if gate1 != p
+p5          if gate2 != p goto p1
+        critical-section
+p6      gate2 = 0
+```
+
+Process $Q$:
+```
+    forever do
+        non-critical section
+q1      gate1 = q
+q2      if gate2 != 0 goto q1
+q3      gate2 = q
+q4      if gate1 != q
+q5          if gate2 != q goto q1
+        critical-section
+q6      gate2 = 0
+```
+
+This algorithm is almost correct because $P$ can reach its critical-section where $Q@q3 \lor Q@q4 \lor Q@q6$.
+
+> Analogy is process marks a gate with their name then moves forward to next gate. If the previous gate still has their name on it, they can move forward. Otherwise, they start again.
+
+### Proving Eventual Entry is not Satisfied
+
+Consider the partial order:
+$$
+p_{1} \\
+q_{1}q_{2}q_{3}q_{4}q_{6}q_{1} \\
+q_{1}q_{2}q_{3}q_{4}q_{6}q_{1} \\
+\vdots
+$$
+
+$p_{2}$ could be executed between $q_{3}$ and $q_{4}$:
+$$
+p_{1}q_{1}q_{2}q_{3}p_{2}q_{4}q_{6}q_{1} \\
+p_{1}q_{1}q_{2}q_{3}p_{2}q_{4}q_{6}q_{1} \\
+\vdots
+$$
+
+- $Q$ enters the critical section infinitely often.
+- $P$ writes its name on `gate1` infinitely often but it's always instantly overwritten.
+- $P$ reads `gate2` infinitely often but always right after $q$ wrote there.
+
+Hence this algorithm does not satisfy eventual entry under weak fairness.
+
+> But it does satisfy deadlock freedom.
+
+### Problems
+
+- Sacrifices eventual entry.
+
+## Fast Correct Lamport's Bakery Algorithm for 2 Processes
+
+```
+integer gate1 = 0
+integer gate2 = 0
+boolean wantp = false
+boolean wantq = false
+```
+
+Process $P$:
+```
+    forever do
+        non-critical section
+p1      gate1 = p
+        wantp = true
+p2      if gate2 != 0
+            wantp = false
+            goto p1
+p3      gate2 = p
+p4      if gate1 != p
+            wantp = false
+            await wantq == false
+p5          if gate2 != p goto p1
+            else wantp = true
+        critical-section
+p6      gate2 = 0
+        wantp = false
+```
+
+Process $Q$:
+```
+    forever do
+        non-critical section
+q1      gate1 = q
+        wantq = true
+q2      if gate2 != 0
+            wantq = false
+            goto q1
+q3      gate2 = q
+q4      if gate1 != q
+            wantq = false
+            await wantp == false
+q5          if gate2 != q goto q1
+            else wantq = true
+        critical-section
+q6      gate2 = 0
+        wantq = false
+```
+
+To generalise this algorithm for $n$ processes, we need $n$ `want` flags and need to `await` for every process.
+
+Invariants:
+$$
+\begin{align}
+P@p5 \land \text{gate2} = p &\implies \neg(Q@q3 \lor Q@q4 \lor Q@q6) \\
+Q@q5 \land \text{gate2} = q &\implies \neg(P@p3 \lor P@p4 \lor P@p6) \\
+P@p4 \land \text{gate1} = p &\implies \text{gate2} \neq 0 \\
+P@p6 &\implies \text{gate2} \neq 0 \land \neq Q@q6 \land (Q@q3 \lor Q@q4 \implies \text{gate1} \neq q) \\
+Q@q4 \land \text{gate1} = q &\implies \text{gate2} \neq 0 \\
+Q@q6 &\implies \text{gate2} \neq \land \neq P@p6 \land (P@p3 \lor P@p4 \implies \text{gate1} \neq p)
+\end{align}
+$$
+
+> Contention: More than one process is in the pre-protocol at a time.
+
+## Szymanski's Algorithm
+
+- Does not have $O(n^{2})$ pre-protocol.
+- Does not sacrifice eventual entry.
+- Does not have unbounded ticket numbers.
+- Does not rely on special instructions (e.g. `xc`, `tc`).
+- Enforces linear wait.
+- Requires at most $4p - \lceil p/n \rceil$ for $p$ critical section entries by $n$ competing processes.
+- Can be immune to process failures, restarts, and read errors occuring during writes.
+
+```
+integer array flag[1..n] = [0, ..., 0]
+```
+
+```
+    forever do
+p1      non-critical section
+p2      flag[i] = 1
+p3      await for all j. flag[j] < 3
+p4      flag[i] = 3
+p5      if there exists j. flag[j] = 1
+p6          flag[i] = 2
+p7          await there exists j. flag[j] = 4
+p8      flag[i] = 4
+p9      await for all j < i. flag[j] < 2
+p10     critical-section
+p11     await for all j > i. flag[j] < 2 or flag[j] > 3
+p12     flag[i] = 0
+```
+
+Shared variables:
+- `0`: denotes $i$ is in its non-critical section.
+- `1`: denotes $i$'s intention to enter the waiting room.
+- `2`: denotes $i$ is in the waiting room and waiting for other processes to enter.
+- `3`: denotes $i$ has just entered the waiting room and closes the waiting room entry door.
+- `4`: denotes $i$ is in the waiting room or critical section and is keeping the waiting room entry door closed.
+
+> Analog is a waiting room with entry and exit. Process announces intention to enter critical section, enters the waiting room through entry door and waits for other processes. Last process to enter the waiting room closes entry door. In order of process IDs, leave waiting room through exit door to enter critical section.
+
+## Hardware Assisted Critical Section Solutions
+
+### Exchange
+
+```
+bit common = 1
+```
+
+Process $P$:
+```
+    bit tp = 0
+    forever do
+p1      non-critical section
+        repeat
+p2          XC(tp, common)
+p3      until tp = 1
+p4      critical section
+p5      XC(tp, common)
+```
+
+Process $Q$:
+```
+    bit tp = 0
+    forever do
+p1      non-critical section
+        repeat
+p2          XC(tp, common)
+p3      until tp = 1
+p4      critical section
+p5      XC(tp, common)
+```
+
+#### Problems
+
+Sacrifices eventual entry.
+
+### Test and Set
+
+An `x86` instruction.
+
+$$
+\text{TS}(x, y) \equiv x, y \coloneqq y, 1 \text{(atomically)}
+$$
+
+```
+bit common = 0
+```
+
+Process $P$:
+```
+    bit tp
+    forever do
+p1      non-critical section
+        repeat
+p2          TS(tp, common)
+p3      until tp = 0
+p4      critical section
+p5      common = 0
+```
+
+Process $Q$:
+```
+    bit tq
+    forever do
+q1      non-critical section
+        repeat
+q2          TS(tq, common)
+q3      until tq = 0
+q4      critical section
+q5      common = 0
+```
+
+#### Problems
+
+Sacrifices eventual entry.
+
+## Locks
+
+Locks (mutex) are common means of concurrency control with two actions:
+- Pre-protocol: Acquiring the lock.
+- Post-protocol: Releasing the lock.
+
+## Semaphores
+
+A semaphore is a pair $(v, L)$ which is always initialised as $(v, \emptyset)$:
+- $v$: how many processes we can let in without waiting.
+- $L$: how many processes currently waiting to get in.
+
+A process $P$ can do two actions on a semaphore $S$:
+- $\text{wait}(S)$: Decrements $v$ if positive, otherwise adds $p$ to $L$ and blocks $p$.
+- $\text{signal}(S)$: If $L \neq \emptyset$, unblocks a member of $L$. Otherwise increment $v$.
+
+> A lock is a special case of a binary semaphore
+
+Invariants:
+$$
+\begin{align}
+v &= k + \text{\#signal}(S) - \text{\#wait}(S) \\
+v &\geq 0 \\
+\text{\#CS} &= \text{\#wait}(S) - \text{\#signal}(S)
+\end{align}
+$$
+
+> - $\text{\#signal}(S)$ is number of times $\text{\#signal}(S)$ has successfully executed.
+> - $\text{\#wait}(S)$ is number of times $\text{\#wait}(S)$ has successfully executed.
+
+### Very Weak Semaphores
+
+- When a signal happens, any one process is unblocked to the state before the wait.
+- Processes released before the wait need to try another wait to enter its critical section.
+- Does not guarantee eventual entry at all.
+
+### Weak Semaphores
+
+- When a signal happens, any one process is unblocked and released to the state after the wait (i.e. released into the critical section).
+- Does not guarantee eventual entry for more than 2 processes.
+- Strong fairness does not guarantee linear waiting.
+
+### Strong Semaphores
+
+- When a signal happens, processes are released in FIFO order to the state after the wait.
+- Guarantees linear waiting.
+
+## Dining Philosophers Problem
+
+Five philosophers sit around a dining table with a huge bowl of spaghetti in the centre. Five plates and five forks are all laid out evenly. The philosophers can only eat spaghetti with two forks. The philosophers would like to alternate between eating and thinking.
+
+<details><summary>Java Code</summary><p>
+
+```java
+import java.util.concurrent.Semaphore;
+
+public Philosopher extends Thread {
+    String name;
+    Semaphore left_fork;
+    Semaphore right_fork;
+
+    Philosopher(String name, Semaphore left_fork, Semaphore right_fork) {
+        this.name = name;
+        this.left_fork = left_fork;
+        this.right_fork = right_fork;
+    }
+
+    public void run() {
+        System.out.println(name + " thinks...");
+        this.sleep();
+
+        System.out.println(name + " grabbed a fork...");
+        left_fork.acquireUninterruptedly();
+        this.sleep();
+
+        System.out.println(name + " grabbed a another fork...");
+        right_fork.acquireUninterruptedly();
+        this.sleep();
+
+        System.out.println(name + " eating...");
+        this.sleep();
+
+        System.out.println(name + " releases forks...");
+        left_fork.release();
+        right_fork.release();
+        this.sleep();
+    }
+
+    // Just for debugging purposes.
+    private sleep() {
+        try {
+            Thread.sleep(150);
+        } catch(InterruptedException e) {
+        }
+    }
+}
+
+public class DiningPhilosopher {
+    public static void main(String[] args) {
+        Semaphore fork1 = new Semaphore(1, false);  // Binary semaphore.
+        Semaphore fork2 = new Semaphore(1, false);
+        Semaphore fork3 = new Semaphore(1, false);
+        Thread t1 = new Philosopher("Hegel", fork1, fork2);
+        Thread t2 = new Philosopher("Plato", fork2, fork3);
+        Thread t3 = new Philosopher("Averroes", fork3, fork1);
+        t1.start();
+        t2.start();
+        t3.start();
+    }
+};
+```
+
+This code will deadlock because all the philosophers pick up one fork.
+
+</p></details>
+
+### Solving Deadlock
+
+1. Ordering the forks so that:
+    ```java
+    Thread t1 = new Philosopher("Hegel", fork1, fork2);
+    Thread t2 = new Philosopher("Plato", fork2, fork3);
+    Thread t3 = new Philosopher("Averroes", fork1, fork3);
+    ```
+1. Implement another semaphore for eating.
+
+## Rendezvous Problem
+
+
+Assume the following program:
+
+Process $P$:
+```
+firstP
+secondP
+```
+
+Process $Q$:
+```
+firstQ
+secondQ
+```
+
+We want `firstP` and `firstQ` to execute before `secondP` and `secondQ`.
+
+
+<details><summary>Java Code</summary><p>
+
+```java
+import java.util.concurrent.Semaphore;
+
+class RendezvousThread extends Thread {
+    String name;
+    Semaphore s1;
+
+    public RendezvousThread(String name, Semaphore s1) {
+        this.name = name;
+        this.s1 = s1;
+    }
+
+    public void run() {
+        System.out.println(name + " first statement");
+        s1.release();
+        s1.acquireUninterruptibly();
+        System.out.println(name + " second statement");
+        s1.release();
+    }
+}
+
+public class Rendezvous {
+    public static void main(String[] args) {
+        Semaphore s1 = new Semaphore(-1);
+        Thread t1 = new RendezvousThread("Bertram", s1);
+        Thread t1 = new RendezvousThread("Agatha", s1);
+        t1.start();
+        t2.start();
+    }
+}
+```
+
+</p></details>
+
+## Producer-Consumer Problem
+
+A producer process and a consumer process share access to a shared buffer of data. The buffer acts as a queue. The producer adds messages to the queue, and the consumer reads messages from the queue. If there are no messages in the queue, the consumer blocks until there are messages.
+
+The producer-consumer problem can be solved using semaphores.
+
+```
+queue[T] buffer = empty
+semaphore full = (0, null)
+```
+
+Producer process:
+```
+    T d
+    forever do
+p1      d = produce
+p2      append(d, buffer)
+p3      signal(full)
+```
+
+Consumer process:
+```
+    T d
+    forever do
+q1      wait(full)
+q2      d = take(buffer)
+q3      consume(d)
+```
+
+## Producer-Consumer Problem with Finite Buffer
+
+Use another semaphore to indicate whether the buffer is empty.
+
+```
+bounded[N] queue[T] buffer = empty
+semaphore full = (0, null)
+semaphore empty = (N, null)
+```
+
+Producer process:
+```
+    T d
+    forever do
+p1      d = produce
+p2      wait(empty)
+p3      append(d, buffer)
+p4      signal(full)
+```
+
+Consumer process:
+```
+    T d
+    forever do
+q1      wait(full)
+q2      d = take(buffer)
+q3      signal(empty)
+q4      consume(d)
+```
