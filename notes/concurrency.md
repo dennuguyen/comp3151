@@ -1260,7 +1260,9 @@ A process $P$ can do two actions on a semaphore $S$:
 - $\text{wait}(S)$: Decrements $v$ if positive, otherwise adds $p$ to $L$ and blocks $p$.
 - $\text{signal}(S)$: If $L \neq \emptyset$, unblocks a member of $L$. Otherwise increment $v$.
 
-> A lock is a special case of a binary semaphore
+> Semaphores are basically counters that increment/decrement.
+
+> A lock is a special case of a binary semaphore.
 
 Invariants:
 $$
@@ -1290,6 +1292,11 @@ $$
 
 - When a signal happens, processes are released in FIFO order to the state after the wait.
 - Guarantees linear waiting.
+
+### Problems
+
+1. Lack of structure: Responsibility is among implementers to correctly use semaphores.
+1. Global visibility: Difficult to isolate the problem.
 
 ## Dining Philosophers Problem
 
@@ -1483,4 +1490,278 @@ q1      wait(full)
 q2      d = take(buffer)
 q3      signal(empty)
 q4      consume(d)
+```
+
+> This pattern is called split semaphores.
+
+## Monitors
+
+Monitors are a generalisation of OOP objects.
+- Processes interact indirectly by using the same monitor.
+- Processes call monitor procedures.
+- At most one call is active in a monitor at a time.
+- Explicit signalling using condition variables.
+
+> Monitor Invariant: Predicate about local state that is true when no call is active.
+
+> Condition Variable: Named FIFO queues of blocked proceses.
+
+A process $P$ can do three actions on a monitor, $M$, with a condition variable, $\text{cv}$:
+- $\text{wait}(\text{cv})$: Process suspends itself and queues in $\text{cv}$.
+- $\text{signal}(\text{cv})$: Unblocks first suspended process in $\text{cv}$.
+- $\text{empty}(\text{cv})$: Tests for emptiness of the queue, $\text{cv}$.
+
+> Monitors uses a condition variable to block/unblock processes.
+
+<details><summary>Promela Code</summary><p>
+
+Simulating monitors in Promela.
+
+```c
+bool lock = false;
+
+typedef Condition {
+    bool gate;
+    byte waiting;  // number of processes waiting on CV.
+}
+
+inline enterMonitor() {
+    atomic {
+        !lock;
+        lock = true;
+    }
+}
+
+inline leaveMonitor() {
+    lock = false;
+}
+
+inline wait(C) {
+    atomic {
+        C.waiting++;
+        lock = false;    // Exit monitor.
+        C.gate;          // Wait for gate.
+        lock = true;     // Immediate resumption requirement.
+        C.gate = false;  // Reset gate.
+        C.waiting--;
+    }
+}
+
+inline signal(C) {
+    atomic {
+        if
+        :: (C.waiting > 0) ->
+            C.gate = true;
+            !lock;        // Immediate resumption requirement.
+            lock = true;  // Take lock again.
+        :: else
+        fi
+    }
+}
+
+#define empty(C) (C.waiting == 0)
+```
+
+</p></details>
+
+### Immediate Resumption Requirement
+
+IRR is the precedence of:
+$$
+E < S < W
+$$
+
+IRR may cause unncessary delays.
+
+## Producer-Consumer Problem with Finite Buffer and Monitor
+
+```
+monitor PC
+    bufferType buffer = empty
+    condition notEmpty
+    condition notFull
+
+    operation append(datatype V)
+        if buffer is full
+            wait(notFull)
+        append(V, buffer)
+        signal(notEmpty)
+
+    operation take()
+        datatype W
+        if buffer is empty
+            wait(notEmpty)
+        W = head(buffer)
+        signal(notFull)
+        return W
+```
+
+Producer process:
+```
+    datatype D
+    forever do
+p1      D = produce
+p2      PC.append(D)
+```
+
+Consumer process:
+```
+    datatype D
+    forever D
+q1      D = PC.take()
+q2      consume(D)
+```
+
+<details><summary>Java Code</summary><p>
+
+```java
+
+class Buffer {
+    private int max_size;
+    private volatile int current_size;
+
+    public Buffer(int max_size) {
+        this.max_size = max_size;
+        this.current_size = 0;
+    }
+
+    public synchronized void enqueue() {
+        while (max_size == current_size) {
+            try {
+                wait();
+            } catch(InterruptedException e) {}
+        }
+        current_size++;
+            notifyAll();
+    }
+
+    public synchronized void dequeue() {
+        while(current_size == 0) {
+            try {
+                wait();
+            }
+            catch(InterruptedException e) {}
+        }
+        current_size--;
+        notifyAll();
+    }
+}
+
+class Consumer extends Thread {
+    Buffer b;
+
+    public Consumer(Buffer b) {
+        this.b = b;
+    }
+
+    public void run() {
+        while(true) {
+            b.enqueue();
+            System.out.println("Thread #" + getId() + " enqueued a thing!");
+        }
+    }
+}
+
+class Producer extends Thread {
+    Buffer b;
+
+    public Producer(Buffer b) {
+        this.b = b;
+    }
+
+    public void run() {
+        while(true) {
+            b.dequeue();
+            System.out.println("Thread #" + getId() + " dequeued a thing!");
+        }
+    }
+}
+
+public class ProducerConsumer {
+    public static void main(String[] args) {
+        Buffer b = new Buffer(1);
+        Thread t1 = new Producer(b);
+        Thread t2 = new Producer(b);
+        Thread t3 = new Producer(b);
+        Thread t4 = new Producer(b);
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+    }
+}
+```
+
+</p></details>
+
+## Concurrency Techniques Simplified
+
+- Locks are binary semaphores.
+- Semaphores uses a counter to block/unblock processes.
+- Monitors uses a condition variable to block/unblock processes.
+    - Condition variable is a FIFO queue of blocked processes.
+    - Can simulate semaphores.
+
+```mermaid
+flowchart LR
+    subgraph Semaphore
+        subgraph Lock
+        end
+    end
+
+    Monitor --- Semaphore
+```
+
+## Shared Data
+
+A common subproblem of the producer-consumer problem is having a *large data structure* which cannot be updated in a single atomic step.
+
+Desiderata:
+- Atomicity: An update should happen in one go, and updates-in-progress or partial updates are not observable.
+- Consistency: Any reader that starts after an update finishes will see that update.
+- Minimal waiting.
+
+```
+monitor RW
+    integer readers = 0
+    integer writers = 0
+    condition OKtoRead
+    condition OKtoWrite
+
+    operation StartRead
+        if writers != 0 or OKtoWrite is not empty
+            wait(OKtoRead)
+        readers = readers + 1
+        signal(OKtoRead)
+
+    operation EndRead
+        readers = readers - 1
+        if readers = 0
+            signal(OKtoWrite)
+
+    operation StartWrite
+        if writers != 0 or readers != 0
+            wait(OKtoWrite)
+        writers = writers + 1
+
+    operation EndWrite
+        writers = writers - 1
+        if OKtoRead is empty
+            signal(OKtoWrite)
+        else
+            signal(OKtoRead)
+```
+
+Reader process:
+```
+p1  RW.StartRead
+p2  read from database
+p3  RW.EndRead
+```
+
+Writer process:
+```
+q1  RW.StartWrite
+q2  write to database
+q3  RW.EndWrite
 ```
