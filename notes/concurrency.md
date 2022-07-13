@@ -1728,23 +1728,23 @@ monitor RW
     condition OKtoRead
     condition OKtoWrite
 
-    operation StartRead
+    operation startRead
         if writers != 0 or OKtoWrite is not empty
             wait(OKtoRead)
         readers = readers + 1
         signal(OKtoRead)
 
-    operation EndRead
+    operation endRead
         readers = readers - 1
         if readers = 0
             signal(OKtoWrite)
 
-    operation StartWrite
+    operation startWrite
         if writers != 0 or readers != 0
             wait(OKtoWrite)
         writers = writers + 1
 
-    operation EndWrite
+    operation endWrite
         writers = writers - 1
         if OKtoRead is empty
             signal(OKtoWrite)
@@ -1754,14 +1754,211 @@ monitor RW
 
 Reader process:
 ```
-p1  RW.StartRead
+p1  RW.startRead
 p2  read from database
-p3  RW.EndRead
+p3  RW.endRead
 ```
 
 Writer process:
 ```
-q1  RW.StartWrite
+q1  RW.startWrite
 q2  write to database
-q3  RW.EndWrite
+q3  RW.endWrite
 ```
+
+### Proving Atomicity
+
+Invariants:
+$$
+\begin{align}
+\text{readers} = R \geq 0 \\
+\text{writers} = W \geq 0 \\
+(R > 0 \implies W = 0) \land (W \leq 1) \land (W = 1 \implies R = 0) \\
+\end{align}
+$$
+
+### Minimising Reading Wait
+
+A writer could create their own local copy of the data structure and then updates the shared pointer to the global data structure with the local copy.
+
+Desideratas:
+- Atomicity: Shared write is just to one pointer.
+- Consistency: Reads that start before the pointer update get the older version, but reads that start after get the latest.
+
+> Memory copy of the data structure can be optimised using persistent data structures.
+
+> Persistent data structures that exclusively use copying over mutation are called purely functional data structures.
+
+## Message Passing
+
+Instead of using shared variables, another concurrency framework is message passing.
+
+### Channels
+
+Channels are typed FIFO queues between processes.
+- Sending a message: $ch \impliedby x$.
+- Receiving a message: $ch \implies y$.
+
+Two kinds of Promela send:
+```
+ch ! x   // Put message at end of queue.
+ch !! x  // Sort a message into the queue.
+```
+
+Four kinds of Promela receive:
+```
+ch ? x     // Pop first message from queue if it matches pattern.
+ch ? <x>   // Read first message from queue without popping it from queue.
+ch ?? x    // Pop first message from queue that matches the pattern.
+ch ?? <x>  // Reads first message from queue that matches the pattern.
+```
+
+Full channels may:
+- Block until there's space.
+- Drop messages if there's no space.
+
+### Synchronous Channels
+
+Sends and receives are blocked until both are ready. When they are ready, they execute at the same time.
+
+Synchronous channels have a queue capacity of 0.
+
+### Asynchronous Channels
+
+Sends do not block. It appends values to the queue of a channel. Receives block until the channel contains a message.
+
+Different types of asynchronous channels:
+- Reliable: Messages will eventually arrive.
+- Lossy: Messages may be lost in transit.
+- FIFO: Messages arrive in-order.
+- Unordered: Messages can arrive out-of-order.
+- Error-detecting: Received messages are not corrupted.
+
+> TCP is reliable and FIFO.
+
+> UDP is lossy and unordered but error-detecting.
+
+## Producer-Consumer Problem with Channels
+
+```
+channel ch
+```
+
+Producer process:
+```
+    integer x
+    forever do
+p1      x = produce()
+p2      ch.send(x)
+```
+
+Consumer process:
+```
+    integer y
+    forever do
+q1      y = ch.receive()
+q2      consume(y)
+```
+
+<details><summary>Promela Code</summary><p>
+
+```c
+chan ch = [0] of { byte }
+
+active proctype P() {
+    ch ! 30;  // Send 30 on channel ch.
+    ch ! 55;
+}
+
+active proctype Q() {
+    byte x = 0;
+    ch ? x;  // Receive 30 on channel ch.
+    printf("I received: %d\n", x);
+    ch ? x;
+    printf("I received: %d\n", x);
+}
+
+```
+
+</p></details>
+
+## Conway's Problem
+
+Input on a channel `inC` a sequence of characters.
+
+Output on a channel `outC`:
+- The sequence of characters from `inC` which runs `2 <= n <= 9` occurrences of the same character `c` replaced by the `n` and `c`.
+- A newline character after every `k` character in the output.
+
+<details><summary>Solution</summary><p>
+
+```
+constant integer MAX = 0
+constant integer K = 4
+channel<integer> inC
+channel<integer> pipe 
+channel<integer> outC 
+```
+
+Compress process:
+```
+    char c
+    char previous = 0
+    previous = inC.receive()
+    forever do
+p1      c = inC.receive()
+p2      if (c == previous) and (n < MAX - 1)
+p3          n = n + 1
+        else
+p4          if n > 0
+p5              pipe.send(i2c(n + 1))
+p6              n = 0
+p7          pipe.send(previous)
+p8          previous = c
+```
+
+Output process:
+```
+    char c
+    integer m = 0
+    forever do
+q1      c = pipe.receive()
+q2      outC.send(c)
+q3      m = m + 1
+q4      if m >= K
+q5          outC.send(newline)
+q6          m = 0
+```
+
+</p></details>
+
+## Dining Philosophers Problem with Channels
+
+```
+channel of boolean forks[5]
+```
+
+Philosopher process:
+```
+    boolean dummy
+    forever do
+p1      think
+p2      dummy = forks[i].receive
+p3      dummy = forks[i + 1].receive
+p4      eat
+p5      forks[i].send(true)
+p6      forks[i + 1].send(true)
+```
+
+Fork process:
+```
+    boolean dummy
+    forever do
+q1      forks[i].send(true)
+q2      dummy = forks[i]
+```
+
+We still need total order to avoid deadlock.
+
+## Synchronous Message Passing
+
