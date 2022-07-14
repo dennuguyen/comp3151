@@ -1,0 +1,3 @@
+[submodule "comp3151-ass1"]
+	path = comp3151-ass1
+	url = git@gitlab.com:dennuguyen/comp3151-ass1.git
