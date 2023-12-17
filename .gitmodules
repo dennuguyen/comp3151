@@ -1,6 +1,6 @@
 [submodule "comp3151-ass1"]
 	path = comp3151-ass1
-	url = git@gitlab.com:dennuguyen/comp3151-ass1.git
+	url = git@github.com:dennuguyen/comp3151-ass1.git
 [submodule "comp3151-ass0"]
 	path = comp3151-ass0
-	url = git@gitlab.com:dennuguyen/comp3151-ass0.git
+	url = git@github.com:dennuguyen/comp3151-ass0.git
